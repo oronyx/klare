@@ -34,5 +34,5 @@ jobs:
         run: cmake --build . --config ${{ matrix.build_type }}
 
       - name: Test
-        working-directory: ${{github.workspace}}/build/bin
+        working-directory: ${{github.workspace}}/build
         run: ./oronyx-test
