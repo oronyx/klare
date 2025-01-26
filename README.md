@@ -6,15 +6,7 @@ and Rust. It is designed to be safe and expressive, as well as being compatible 
 
 ## Example
 
-```orx
-import { printf } from 'cstdlib';
-
-function main() -> i32
-{
-    printf("Hello from Oronyx!"\n);
-    return 0;
-}
-```
+<img src="main.orx.png" alt="Driver" width="50%" height="50%">
 
 ## Status
 

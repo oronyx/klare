@@ -1,9 +1,11 @@
 # This file is part of the Oronyx programming language and is licensed under MIT License;
 # See LICENSE.txt for details
 
-set(ORX_LEXER_SRC
-        include/lexer.h
-        src/lexer.cpp
+set(ORX_PARSER_SRC
+        include/parser.h
+        src/parser.cpp
 )
 
-add_library(orx-lexer STATIC ${ORX_LEXER_SRC})
+add_library(orx-parser STATIC ${ORX_PARSER_SRC})
+
+

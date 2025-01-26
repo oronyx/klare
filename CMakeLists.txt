@@ -1,3 +1,6 @@
+# This file is part of the Oronyx programming language and is licensed under MIT License;
+# See LICENSE.txt for details
+
 cmake_minimum_required(VERSION 3.29)
 project(oronyx LANGUAGES CXX)
 

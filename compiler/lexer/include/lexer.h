@@ -19,12 +19,11 @@ namespace orx::compiler
         std::unique_ptr<std::vector<uint32_t>> get_line_starts();
 
     private:
+        TokenList tokens;
+        std::vector<uint32_t> line_starts;
         std::span<const char> src;
         uint32_t current_pos;
         uint32_t src_length;
-
-        TokenList tokens;
-        std::vector<uint32_t> line_starts;
 
         Token next_token();
 
