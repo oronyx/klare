@@ -2,6 +2,7 @@
 // See LICENSE.txt for details
 
 #include "../include/lexer.h"
+#include <cstring>
 
 namespace orx::compiler
 {
