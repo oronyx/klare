@@ -6,13 +6,17 @@
 
 namespace orx::compiler
 {
-    // zero branch lookup tb for char classification
-    // 1 = ws
+    // branch-free lookup tb for char classification
+    // using multiplication
+    // each type is mutually exclusive so it will always
+    // be correct
+    //
+    // 1 = ws | tab | newline | carriage return
     // 2 = comment start
     // 3 = comment continuation
-    // 4 == identifier
-    // 5 == digit
-    // 6 == str delimiter
+    // 4 == identifier (letter, _, @)
+    // 5 == digit (0, 9)
+    // 6 == str delimiter (")
     static const std::array<uint8_t, 256> char_type = []
     {
         std::array<uint8_t, 256> types {};
@@ -109,6 +113,9 @@ namespace orx::compiler
     {
         // fast path for more than 8 chars
         // that compiles to a guaranteed SIMD
+        // handles both single & multi-line comments
+        // tracks line starts for later pipeline
+        // falls back to char-by-char near ROF
         while (current_pos + 8 <= src_length)
         {
             uint64_t chunk;
@@ -139,10 +146,10 @@ namespace orx::compiler
             break;
         }
 
-    // slow path, usually runs when it is near the EOF
-    while
-    (current_pos<src_length)
-    {
+        // slow path, usually runs when it is near the EOF
+        while
+        (current_pos < src_length)
+        {
             const char current_char = src[current_pos];
             const uint8_t type = char_type[static_cast<uint8_t>(current_char)];
             if (current_char == '\n')
@@ -182,12 +189,15 @@ namespace orx::compiler
         const char *current = start;
         uint8_t flags = 0;
 
-        const uint32_t is_valid_start = (*current == '_' || *current == '@' ||
-                                         std::isalpha(*current));
-        flags |= make_flag(!is_valid_start, TokenFlags::INVALID_IDENTIFIER_START);
+        const uint32_t is_valid_start = (*current == '_' || std::isalpha(*current));
+        if (!is_valid_start && *current != '@')
+            return { current_pos, 1, TokenType::UNKNOWN, static_cast<TokenFlags>(flags) };
 
-        current += (*current == '@');
+        const bool is_at_prefixed = (*current == '@');
+        current += is_at_prefixed;
 
+        auto has_digit = false;
+        auto has_invalid = false;
         while (current < src.data() + src_length)
         {
             const char c = *current;
@@ -199,9 +209,8 @@ namespace orx::compiler
             const uint32_t is_valid = is_alnum | is_underscore;
             const uint32_t is_terminator = (!is_valid) & (is_space | is_punct);
 
-            flags |= (!is_valid & !is_terminator) *
-                    static_cast<uint8_t>(TokenFlags::INVALID_IDENTIFIER_CHAR);
-
+            has_digit |= std::isdigit(c);
+            has_invalid |= (!is_valid & !is_terminator);
             current += is_valid;
             if (!is_valid)
                 break;
@@ -212,16 +221,23 @@ namespace orx::compiler
 
         for (const auto &[next, type]: token_map)
         {
-            if (next.length() == length &&
-                memcmp(next.data(), text.data(), length) == 0)
-            {
+            if (next.length() == length && memcmp(next.data(), text.data(), length) == 0)
                 return { current_pos, length, type, static_cast<TokenFlags>(flags) };
-            }
         }
+
+        // removed: has_digit ||
+        if (is_at_prefixed || has_invalid || !is_valid_start)
+            return { current_pos, length, TokenType::UNKNOWN, static_cast<TokenFlags>(flags) };
 
         return { current_pos, length, TokenType::IDENTIFIER, static_cast<TokenFlags>(flags) };
     }
 
+    // scan 8 bytes at a time when detected
+    // handles hex, bin, and decimal
+    // supports only full decimal i.e. 0.123 NOT .123
+    // there are error flags set here
+    // 1. multiple decimal point
+    // 2. invalid exponent
     Token Lexer::lex_number() const
     {
         const char *start = src.data() + current_pos;
@@ -287,6 +303,24 @@ namespace orx::compiler
         while (should_continue & (current < end) & ((*current >= '0') & (*current <= '9')))
             ++current;
 
+        if (current < end && (std::isalpha(*current) || *current == '_')) {
+            while (current < end)
+            {
+                const char c = *current;
+                const uint32_t is_alnum = std::isalnum(c);
+                if (const uint32_t is_underscore = c == '_';
+                    !(is_alnum || is_underscore))
+                    break;
+                ++current;
+            }
+            return {
+                current_pos,
+                static_cast<uint16_t>(current - start),
+                TokenType::UNKNOWN,
+                static_cast<TokenFlags>(flags)
+            };
+        }
+
         return {
             current_pos,
             static_cast<uint16_t>(current - start),
@@ -295,108 +329,113 @@ namespace orx::compiler
         };
     }
 
+    // perf note: this compiles down to a BST jmp table hybrid
+    // likely because it has both dense and sparse cases
     Token Lexer::lex_operator() const
     {
         const char *start = src.data() + current_pos;
-        const char *current = start;
-        const char *end = src.data() + src_length;
         uint8_t flags = 0;
-
-        const char next = (current + 1 < end) ? *(current + 1) : '\0';
-        switch (*current)
+        const char next = (current_pos + 1 < src_length) ? *(start + 1) : '\0';
+        const char third = (current_pos + 2 < src_length) ? *(start + 2) : '\0';
+        switch (*start)
         {
-            case '-':
+            case '>':
+                if (next == '>' && third == '=')
+                    return { current_pos, 3, TokenType::RIGHT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
                 if (next == '>')
-                    return { current_pos, 2, TokenType::ARROW, static_cast<TokenFlags>(flags) };
+                    return { current_pos, 2, TokenType::RIGHT_SHIFT, static_cast<TokenFlags>(flags) };
                 if (next == '=')
-                    return { current_pos, 2, TokenType::MINUS_EQ, static_cast<TokenFlags>(flags) };
+                    return { current_pos, 2, TokenType::GE, static_cast<TokenFlags>(flags) };
                 break;
-            case '=':
+
+            case '<':
+                if (next == '<' && third == '=')
+                    return { current_pos, 3, TokenType::LEFT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
+                if (next == '<')
+                    return { current_pos, 2, TokenType::LEFT_SHIFT, static_cast<TokenFlags>(flags) };
                 if (next == '=')
-                    return { current_pos, 2, TokenType::EQ, static_cast<TokenFlags>(flags) };
+                    return { current_pos, 2, TokenType::LE, static_cast<TokenFlags>(flags) };
                 break;
-            case ':':
-                if (next == ':')
-                    return { current_pos, 2, TokenType::SCOPE, static_cast<TokenFlags>(flags) };
-                break;
+
             case '.':
+                if (next == '.' && third == '.')
+                    return { current_pos, 3, TokenType::SPREAD, static_cast<TokenFlags>(flags) };
                 if (next == '.')
-                {
-                    const char third = (current + 2 < end) ? *(current + 2) : '\0';
-                    if (third == '.')
-                        return { current_pos, 3, TokenType::SPREAD, static_cast<TokenFlags>(flags) };
                     return { current_pos, 2, TokenType::RANGE, static_cast<TokenFlags>(flags) };
-                }
                 break;
+
             case '&':
                 if (next == '&')
                     return { current_pos, 2, TokenType::LOGICAL_AND, static_cast<TokenFlags>(flags) };
                 if (next == '=')
                     return { current_pos, 2, TokenType::AND_EQ, static_cast<TokenFlags>(flags) };
                 break;
+
             case '|':
                 if (next == '|')
                     return { current_pos, 2, TokenType::LOGICAL_OR, static_cast<TokenFlags>(flags) };
                 if (next == '=')
                     return { current_pos, 2, TokenType::OR_EQ, static_cast<TokenFlags>(flags) };
                 break;
-            case '>':
+
+            case '=':
                 if (next == '=')
-                    return { current_pos, 2, TokenType::GE, static_cast<TokenFlags>(flags) };
-                if (next == '>')
-                {
-                    const char third = (current + 2 < end) ? *(current + 2) : '\0';
-                    if (third == '=')
-                        return { current_pos, 3, TokenType::RIGHT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
-                    else
-                        return { current_pos, 2, TokenType::RIGHT_SHIFT, static_cast<TokenFlags>(flags) };
-                }
+                    return { current_pos, 2, TokenType::EQ, static_cast<TokenFlags>(flags) };
                 break;
-            case '<':
-                if (next == '=')
-                    return { current_pos, 2, TokenType::LE, static_cast<TokenFlags>(flags) };
-                if (next == '<')
-                {
-                    const char third = (current + 2 < end) ? *(current + 2) : '\0';
-                    if (third == '=')
-                        return { current_pos, 3, TokenType::LEFT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
-                    else
-                        return { current_pos, 2, TokenType::LEFT_SHIFT, static_cast<TokenFlags>(flags) };
-                }
+
+            case ':':
+                if (next == ':')
+                    return { current_pos, 2, TokenType::SCOPE, static_cast<TokenFlags>(flags) };
                 break;
+
             case '!':
                 if (next == '=')
                     return { current_pos, 2, TokenType::NE, static_cast<TokenFlags>(flags) };
                 break;
+
+            case '-':
+                if (next == '>')
+                    return { current_pos, 2, TokenType::ARROW, static_cast<TokenFlags>(flags) };
+                if (next == '=')
+                    return { current_pos, 2, TokenType::MINUS_EQ, static_cast<TokenFlags>(flags) };
+                break;
+
             case '+':
                 if (next == '=')
                     return { current_pos, 2, TokenType::PLUS_EQ, static_cast<TokenFlags>(flags) };
                 break;
+
             case '*':
                 if (next == '=')
                     return { current_pos, 2, TokenType::STAR_EQ, static_cast<TokenFlags>(flags) };
                 break;
+
             case '/':
                 if (next == '=')
                     return { current_pos, 2, TokenType::SLASH_EQ, static_cast<TokenFlags>(flags) };
                 break;
+
             case '%':
                 if (next == '=')
                     return { current_pos, 2, TokenType::PERCENT_EQ, static_cast<TokenFlags>(flags) };
                 break;
+
             case '^':
                 if (next == '=')
                     return { current_pos, 2, TokenType::XOR_EQ, static_cast<TokenFlags>(flags) };
                 break;
             default:
-                return {
-                    current_pos, 1, single_char_tokens[static_cast<uint8_t>(*current)], static_cast<TokenFlags>(flags)
-                };;
+                break;
         }
 
-        return { current_pos, 1, single_char_tokens[static_cast<uint8_t>(*current)], static_cast<TokenFlags>(flags) };
+        return { current_pos, 1, single_char_tokens[static_cast<uint8_t>(*start)], static_cast<TokenFlags>(flags) };
     }
 
+    // method validates escape sequences \n \t \r \\ \" \0 \x
+    // with special handling for hex escapes i.e. \x00
+    // error flags:
+    // 1. invalid escape sequence
+    // 2. unterminated string
     Token Lexer::lex_string() const
     {
         const char *start = src.data() + current_pos;
@@ -416,7 +455,9 @@ namespace orx::compiler
             if (is_x_escape)
             {
                 // if enough escape chars (3) i.e. \x123
-                if (current + 3 >= end || !hex_lookup[static_cast<uint8_t>(current[1])] || !hex_lookup[static_cast<uint8_t>(current[2])])
+                if (current + 3 >= end || !hex_lookup[static_cast<uint8_t>(current[1])] || !hex_lookup[static_cast<
+                uint8_t>(current[2])] || !hex_lookup[static_cast<
+                uint8_t>(current[3])])
                 {
                     flags |= static_cast<uint8_t>(TokenFlags::INVALID_ESCAPE_SEQUENCE);
                     break;
@@ -454,7 +495,7 @@ namespace orx::compiler
             case 6:
                 return lex_string();
             default:
-                return { current_pos, 1, single_char_tokens[static_cast<uint8_t>(c)], static_cast<TokenFlags>(0) };
+                return lex_operator();
         }
     }
 
@@ -476,8 +517,8 @@ namespace orx::compiler
 
     // returns a unique_ptr of uint32_t OR line because
     // the parser needs to produce efficient errors
-    std::unique_ptr<std::vector<uint32_t>> Lexer::get_line_starts()
+    std::unique_ptr<std::vector<uint32_t> > Lexer::get_line_starts()
     {
-        return std::make_unique<std::vector<uint32_t>>(line_starts);
+        return std::make_unique<std::vector<uint32_t> >(line_starts);
     }
 }
