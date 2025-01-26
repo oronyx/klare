@@ -10,3 +10,8 @@ target_include_directories(oronyx-test PRIVATE
 target_link_libraries(oronyx-test PRIVATE
         orx
 )
+
+set_target_properties(oronyx-test
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
