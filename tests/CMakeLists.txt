@@ -1,0 +1,12 @@
+add_executable(oronyx-test
+        tokenize/test.cpp
+        ${CMAKE_SOURCE_DIR}/vendor/catch2.cpp
+)
+
+target_include_directories(oronyx-test PRIVATE
+        ${CMAKE_SOURCE_DIR}/vendor
+)
+
+target_link_libraries(oronyx-test PRIVATE
+        orx
+)

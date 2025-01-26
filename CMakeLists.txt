@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 project(oronyx LANGUAGES CXX)
 
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
 cmake_policy(SET CMP0054 NEW)
