@@ -16,8 +16,13 @@ add_executable(oronyx-test
         tokenize/unit/single_ops.cpp
         tokenize/unit/str_literals.cpp
         tokenize/unit/types.cpp
+        tokenize/integration/var_decl.cpp
+        tokenize/integration/function_decl.cpp
 
         parse/unit/var_decl.cpp
+        tokenize/integration/control_flows.cpp
+        tokenize/integration/classes.cpp
+        tokenize/integration/complex.cpp
 )
 
 target_include_directories(oronyx-test PRIVATE

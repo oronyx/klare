@@ -29,6 +29,7 @@ namespace orx::compiler
         CONTINUE,
         SWITCH,
         CASE,
+        STRUCT,
         DEFAULT,
         CLASS,
         FINAL,
@@ -44,6 +45,10 @@ namespace orx::compiler
         OPERATOR,
         NEW,
         DELETE,
+        IN,
+        SELF,
+        NAMESPACE,
+        EXPORT,
 
         // builtin types
         U8,
@@ -125,6 +130,7 @@ namespace orx::compiler
         LAZY_ANNOT,       // @lazy
         PURE_ANNOT,       // @pure
         TAIL_REC_ANNOT,   // @tailrec
+        OVERRIDE_ANNOT, // @override
 
         IDENTIFIER,
         NUM_LITERAL,
@@ -218,6 +224,7 @@ namespace orx::compiler
         { "switch", TokenType::SWITCH },
         { "case", TokenType::CASE },
         { "default", TokenType::DEFAULT },
+        { "struct", TokenType::STRUCT },
         { "class", TokenType::CLASS },
         { "final", TokenType::FINAL },
         { "public", TokenType::PUBLIC },
@@ -232,6 +239,10 @@ namespace orx::compiler
         { "operator", TokenType::OPERATOR },
         { "new", TokenType::NEW },
         { "delete", TokenType::NEW },
+        { "in", TokenType::IN },
+        { "self", TokenType::SELF },
+        { "namespace", TokenType::NAMESPACE },
+        { "export", TokenType::EXPORT },
 
         { "u8", TokenType::U8 },
         { "i8", TokenType::I8 },
@@ -284,7 +295,8 @@ namespace orx::compiler
         { "@volatile", TokenType::VOLATILE_ANNOT },
         { "@lazy", TokenType::LAZY_ANNOT },
         { "@pure", TokenType::PURE_ANNOT },
-        { "@tailrec", TokenType::TAIL_REC_ANNOT }
+        { "@tailrec", TokenType::TAIL_REC_ANNOT },
+        { "@override", TokenType::OVERRIDE_ANNOT },
     };
 
     static constexpr auto create_reverse_map()

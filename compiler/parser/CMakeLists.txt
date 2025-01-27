@@ -4,6 +4,7 @@
 set(ORX_PARSER_SRC
         include/parser.h
         src/parser.cpp
+        include/symbol.h
 )
 
 add_library(orx-parser STATIC ${ORX_PARSER_SRC})
