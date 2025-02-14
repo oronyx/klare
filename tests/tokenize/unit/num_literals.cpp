@@ -1,11 +1,11 @@
-// This file is part of the Oronyx programming language and is licensed under MIT License;
+// This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
 #include <catch2.hpp>
 
 #include "../../../compiler/lexer/include/lexer.h"
 
-using namespace orx::compiler;
+using namespace klr::compiler;
 
 TEST_CASE("Number literals")
 {
@@ -14,8 +14,8 @@ TEST_CASE("Number literals")
         std::vector<std::string> integers = {
             "0",
             "123",
-            "0xFF",   // hex
-            "0b1010", // bin
+            "0xFF",
+            "0b1010",
         };
 
         for (const auto &num: integers)

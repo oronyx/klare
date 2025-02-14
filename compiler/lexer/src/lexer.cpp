@@ -1,10 +1,10 @@
-// This file is part of the Oronyx programming language and is licensed under MIT License;
+// This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
 #include "../include/lexer.h"
 #include <cstring>
 
-namespace orx::compiler
+namespace klr::compiler
 {
     // branch-free lookup tb for char classification
     // using multiplication

@@ -1,11 +1,11 @@
-// This file is part of the Oronyx programming language and is licensed under MIT License;
+// This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
 #include <catch2.hpp>
 
 #include "../../../compiler/lexer/include/lexer.h"
 
-using namespace orx::compiler;
+using namespace klr::compiler;
 
 TEST_CASE("Single-character operators")
 {

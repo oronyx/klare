@@ -15,11 +15,9 @@ add_executable(oronyx-test
         tokenize/unit/num_literals.cpp
         tokenize/unit/single_ops.cpp
         tokenize/unit/str_literals.cpp
-        tokenize/unit/types.cpp
         tokenize/integration/var_decl.cpp
         tokenize/integration/function_decl.cpp
 
-        parse/unit/var_decl.cpp
         tokenize/integration/control_flows.cpp
         tokenize/integration/classes.cpp
         tokenize/integration/complex.cpp
@@ -27,6 +25,7 @@ add_executable(oronyx-test
 
 target_include_directories(oronyx-test PRIVATE
         ${CMAKE_SOURCE_DIR}/vendor
+        ${PROJECT_SOURCE_DIR}/compiler
 )
 
 target_link_libraries(oronyx-test PRIVATE

@@ -1,4 +1,4 @@
-// This file is part of the Oronyx programming language and is licensed under MIT License;
+// This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
 #pragma once
@@ -7,7 +7,7 @@
 #include <span>
 #include "../../interfaces/include/tokens.h"
 
-namespace orx::compiler
+namespace klr::compiler
 {
     class alignas(64) Lexer
     {

@@ -1,4 +1,4 @@
-// This file is part of the Oronyx programming language and is licensed under MIT License;
+// This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
 #pragma once
@@ -6,11 +6,11 @@
 #include <cstdint>
 #include <vector>
 
-namespace orx::compiler
+namespace klr::compiler
 {
     enum class TokenType : uint8_t
     {
-        // keywords
+        /* keywords */
         TRUE,
         FALSE,
         NIL,
@@ -50,7 +50,7 @@ namespace orx::compiler
         NAMESPACE,
         EXPORT,
 
-        // builtin types
+        /* builtin types */
         U8,
         I8,
         U16,
@@ -69,29 +69,29 @@ namespace orx::compiler
         REF,
         PIN,
 
-        // single operators
-        PLUS, // +
-        MINUS, // -
-        STAR, // *
-        SLASH, // /
-        PERCENT, // %
-        EQUAL, // =
-        BANG, // !
-        LESS, // <
-        GREATER, // >
-        AND, // &
-        OR, // |
-        XOR, // ^
-        TILDE, // ^
-        DOT, // .
+        /* single operators */
+        PLUS,
+        MINUS,
+        STAR,
+        SLASH,
+        PERCENT,
+        EQUAL,
+        BANG,
+        LESS,
+        GREATER,
+        AND,
+        OR,
+        XOR,
+        TILDE,
+        DOT,
 
-        // mult-character operators
-        ARROW,         // ->
-        SCOPE,         // ::
-        RANGE,         // ..
-        SPREAD,        // ...
-        LOGICAL_AND,   // &&
-        LOGICAL_OR,    // ||
+        /* mult-character operators */
+        ARROW,
+        SCOPE,
+        RANGE,
+        SPREAD,
+        LOGICAL_AND,
+        LOGICAL_OR,
         GE,            // >=
         LE,            // <=
         EQ,            // ==
@@ -104,13 +104,13 @@ namespace orx::compiler
         AND_EQ,        // &=
         OR_EQ,         // |=
         XOR_EQ,        // ^=
-        LEFT_SHIFT, // <<
-        RIGHT_SHIFT, // >>
-        LEFT_SHIFT_EQ, // <<=
-        RIGHT_SHIFT_EQ, // >>=
+        LEFT_SHIFT,
+        RIGHT_SHIFT,
+        LEFT_SHIFT_EQ,
+        RIGHT_SHIFT_EQ,
 
-        // delimiters
-        LEFT_PAREN,    // (
+        /* delimiters */
+        LEFT_PAREN,
         RIGHT_PAREN,   // )
         LEFT_BRACE,    // {
         RIGHT_BRACE,   // }
@@ -121,16 +121,16 @@ namespace orx::compiler
         SEMICOLON,     // ;
         QUESTION,      // ?
 
-        // annotations
-        ALIGN_ANNOT,      // @align
-        DEPRECATED_ANNOT, // @deprecated
-        PACKED_ANNOT,     // @packed
-        NO_DISCARD_ANNOT, // @nodiscard
-        VOLATILE_ANNOT,   // @volatile
-        LAZY_ANNOT,       // @lazy
-        PURE_ANNOT,       // @pure
-        TAIL_REC_ANNOT,   // @tailrec
-        OVERRIDE_ANNOT, // @override
+        /* annotations */
+        ALIGN_ANNOT,
+        DEPRECATED_ANNOT,
+        PACKED_ANNOT,
+        NO_DISCARD_ANNOT,
+        VOLATILE_ANNOT,
+        LAZY_ANNOT,
+        PURE_ANNOT,
+        TAIL_REC_ANNOT,
+        OVERRIDE_ANNOT,
 
         IDENTIFIER,
         NUM_LITERAL,
@@ -144,17 +144,17 @@ namespace orx::compiler
     {
         NONE = 0,
 
-        // literal errors
+        /* literal errors */
         UNTERMINATED_STRING = 1 << 0,
         INVALID_ESCAPE_SEQUENCE = 1 << 1,
         INVALID_DIGIT = 1 << 2,
         MULTIPLE_DECIMAL_POINTS = 1 << 3,
         INVALID_EXPONENT = 1 << 4,
 
-        // comment errors
+        /* comment errors */
         UNTERMINATED_BLOCK_COMMENT = 1 << 5,
 
-        // identifier errors
+        /* identifier errors */
         INVALID_IDENTIFIER_START = 1 << 6,
         INVALID_IDENTIFIER_CHAR = 1 << 7
     };
