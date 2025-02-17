@@ -2,8 +2,7 @@
 // See LICENSE.txt for details
 
 #include <catch2.hpp>
-
-#include "../../../compiler/lexer/include/lexer.h"
+#include <compiler/lexer/include/lexer.h>
 
 using namespace klr::compiler;
 

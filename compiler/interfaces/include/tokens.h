@@ -64,10 +64,10 @@ namespace klr::compiler
         STRING,
         BOOL,
         VOID,
-        OWN,
-        SHARE,
-        REF,
-        PIN,
+        OWN,   /* Own<T> */
+        SHARE, /* Share<T> */
+        REF,   /* Ref<T> */
+        PIN,   /* Pin<T> */
 
         /* single operators */
         PLUS,
@@ -92,18 +92,18 @@ namespace klr::compiler
         SPREAD,
         LOGICAL_AND,
         LOGICAL_OR,
-        GE,            // >=
-        LE,            // <=
-        EQ,            // ==
-        NE,            // !=
-        PLUS_EQ,       // +=
-        MINUS_EQ,      // -=
-        STAR_EQ,       // *=
-        SLASH_EQ,      // /=
-        PERCENT_EQ,    // %=
-        AND_EQ,        // &=
-        OR_EQ,         // |=
-        XOR_EQ,        // ^=
+        GE,         // >=
+        LE,         // <=
+        EQ,         // ==
+        NE,         // !=
+        PLUS_EQ,    // +=
+        MINUS_EQ,   // -=
+        STAR_EQ,    // *=
+        SLASH_EQ,   // /=
+        PERCENT_EQ, // %=
+        AND_EQ,     // &=
+        OR_EQ,      // |=
+        XOR_EQ,     // ^=
         LEFT_SHIFT,
         RIGHT_SHIFT,
         LEFT_SHIFT_EQ,
@@ -202,6 +202,16 @@ namespace klr::compiler
         {
             return starts.size();
         }
+
+        [[nodiscard]] Token operator[](const size_t index) const
+        {
+            return Token {
+                .start = starts[index],
+                .len = lens[index],
+                .type = types[index],
+                .flags = flags[index]
+            };
+        }
     };
 
     static constexpr std::pair<std::string_view, TokenType> token_map[] = {
@@ -277,6 +287,29 @@ namespace klr::compiler
         { "~", TokenType::TILDE },
         { ".", TokenType::DOT },
 
+        { "->", TokenType::ARROW },
+        { "::", TokenType::SCOPE },
+        { "..", TokenType::RANGE },
+        { "...", TokenType::SPREAD },
+        { "&&", TokenType::LOGICAL_AND },
+        { "||", TokenType::LOGICAL_OR },
+        { ">=", TokenType::GE },
+        { "<=", TokenType::LE },
+        { "==", TokenType::EQ },
+        { "!=", TokenType::NE },
+        { "+=", TokenType::PLUS_EQ },
+        { "-=", TokenType::MINUS_EQ },
+        { "*=", TokenType::STAR_EQ },
+        { "/=", TokenType::SLASH_EQ },
+        { "%=", TokenType::PERCENT_EQ },
+        { "&=", TokenType::AND_EQ },
+        { "|=", TokenType::OR_EQ },
+        { "^=", TokenType::XOR_EQ },
+        { "<<", TokenType::LEFT_SHIFT },
+        { ">>", TokenType::RIGHT_SHIFT },
+        { "<<=", TokenType::LEFT_SHIFT_EQ },
+        { ">>=", TokenType::RIGHT_SHIFT_EQ },
+
         { "(", TokenType::LEFT_PAREN },
         { ")", TokenType::RIGHT_PAREN },
         { "{", TokenType::LEFT_BRACE },
@@ -301,9 +334,9 @@ namespace klr::compiler
 
     static constexpr auto create_reverse_map()
     {
-        std::array<std::string_view, static_cast<size_t>(TokenType::END_OF_FILE) + 1> map{};
+        std::array<std::string_view, static_cast<size_t>(TokenType::END_OF_FILE) + 1> map {};
 
-        for (const auto& [str, token] : token_map)
+        for (const auto &[str, token]: token_map)
             map[static_cast<size_t>(token)] = str;
 
         map[static_cast<size_t>(TokenType::IDENTIFIER)] = "IDENTIFIER";
@@ -316,7 +349,7 @@ namespace klr::compiler
         return map;
     }
 
-    inline std::string_view token_to_str(const TokenType& t)
+    inline std::string_view token_to_str(const TokenType &t)
     {
         static constexpr auto rev_map = create_reverse_map();
         const auto i = static_cast<size_t>(t);

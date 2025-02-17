@@ -1,7 +1,7 @@
 // This file is part of the Klare programming language and is licensed under MIT License;
 // See LICENSE.txt for details
 
-#include "../include/lexer.h"
+#include <compiler/lexer/include/lexer.h>
 #include <cstring>
 
 namespace klr::compiler
@@ -34,7 +34,7 @@ namespace klr::compiler
 
     static constexpr std::array<TokenType, 256> single_char_tokens = []
     {
-        // align data + 256 bytes for SIMD
+        /* align data + 256 bytes for SIMD */
         alignas(64) std::array<TokenType, 256> tokens {};
         std::ranges::fill(tokens, TokenType::UNKNOWN);
 
@@ -102,8 +102,6 @@ namespace klr::compiler
                                                , current_pos(0)
                                                , src_length(src.length())
     {
-        // TODO: May or may not to figure out how to effectively
-        // estimate the size if the needed tokens
         tokens.reserve(src.length() / 4);
         line_starts.reserve(src.length() / 40);
         line_starts.emplace_back(0);
@@ -111,11 +109,13 @@ namespace klr::compiler
 
     void Lexer::skip_whitespace_comment()
     {
-        // fast path for more than 8 chars
-        // that compiles to a guaranteed SIMD
-        // handles both single & multi-line comments
-        // tracks line starts for later pipeline
-        // falls back to char-by-char near ROF
+        /*
+         * fast path for more than 8 chars
+         * that compiles to a guaranteed SIMD
+         * handles both single & multi-line comments
+         * tracks line starts for later pipeline
+         * falls back to char-by-char near ROF
+         */
         while (current_pos + 8 <= src_length)
         {
             uint64_t chunk;
@@ -146,7 +146,7 @@ namespace klr::compiler
             break;
         }
 
-        // slow path, usually runs when it is near the EOF
+        /* slow path, usually runs when it is near the EOF */
         while
         (current_pos < src_length)
         {
@@ -225,7 +225,6 @@ namespace klr::compiler
                 return { current_pos, length, type, static_cast<TokenFlags>(flags) };
         }
 
-        // removed: has_digit ||
         if (is_at_prefixed || has_invalid || !is_valid_start)
             return { current_pos, length, TokenType::UNKNOWN, static_cast<TokenFlags>(flags) };
 
@@ -303,7 +302,8 @@ namespace klr::compiler
         while (should_continue & (current < end) & ((*current >= '0') & (*current <= '9')))
             ++current;
 
-        if (current < end && (std::isalpha(*current) || *current == '_')) {
+        if (current < end && (std::isalpha(*current) || *current == '_'))
+        {
             while (current < end)
             {
                 const char c = *current;
@@ -329,8 +329,7 @@ namespace klr::compiler
         };
     }
 
-    // perf note: this compiles down to a BST jmp table hybrid
-    // likely because it has both dense and sparse cases
+    /* perf note: this compiles down to a BST jmp table hybrid */
     Token Lexer::lex_operator() const
     {
         const char *start = src.data() + current_pos;
@@ -340,6 +339,7 @@ namespace klr::compiler
         switch (*start)
         {
             case '>':
+            {
                 if (next == '>' && third == '=')
                     return { current_pos, 3, TokenType::RIGHT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
                 if (next == '>')
@@ -347,8 +347,9 @@ namespace klr::compiler
                 if (next == '=')
                     return { current_pos, 2, TokenType::GE, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '<':
+            {
                 if (next == '<' && third == '=')
                     return { current_pos, 3, TokenType::LEFT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
                 if (next == '<')
@@ -356,74 +357,91 @@ namespace klr::compiler
                 if (next == '=')
                     return { current_pos, 2, TokenType::LE, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '.':
+            {
                 if (next == '.' && third == '.')
                     return { current_pos, 3, TokenType::SPREAD, static_cast<TokenFlags>(flags) };
                 if (next == '.')
                     return { current_pos, 2, TokenType::RANGE, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '&':
+            {
                 if (next == '&')
                     return { current_pos, 2, TokenType::LOGICAL_AND, static_cast<TokenFlags>(flags) };
                 if (next == '=')
                     return { current_pos, 2, TokenType::AND_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '|':
+            {
                 if (next == '|')
                     return { current_pos, 2, TokenType::LOGICAL_OR, static_cast<TokenFlags>(flags) };
                 if (next == '=')
                     return { current_pos, 2, TokenType::OR_EQ, static_cast<TokenFlags>(flags) };
                 break;
+            }
 
             case '=':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::EQ, static_cast<TokenFlags>(flags) };
                 break;
+            }
 
             case ':':
+            {
                 if (next == ':')
                     return { current_pos, 2, TokenType::SCOPE, static_cast<TokenFlags>(flags) };
                 break;
+            }
 
             case '!':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::NE, static_cast<TokenFlags>(flags) };
                 break;
+            }
 
             case '-':
+            {
                 if (next == '>')
                     return { current_pos, 2, TokenType::ARROW, static_cast<TokenFlags>(flags) };
                 if (next == '=')
                     return { current_pos, 2, TokenType::MINUS_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '+':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::PLUS_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '*':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::STAR_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '/':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::SLASH_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '%':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::PERCENT_EQ, static_cast<TokenFlags>(flags) };
                 break;
-
+            }
             case '^':
+            {
                 if (next == '=')
                     return { current_pos, 2, TokenType::XOR_EQ, static_cast<TokenFlags>(flags) };
                 break;
+            }
             default:
                 break;
         }
@@ -456,8 +474,8 @@ namespace klr::compiler
             {
                 // if enough escape chars (3) i.e. \x123
                 if (current + 3 >= end || !hex_lookup[static_cast<uint8_t>(current[1])] || !hex_lookup[static_cast<
-                uint8_t>(current[2])] || !hex_lookup[static_cast<
-                uint8_t>(current[3])])
+                        uint8_t>(current[2])] || !hex_lookup[static_cast<
+                        uint8_t>(current[3])])
                 {
                     flags |= static_cast<uint8_t>(TokenFlags::INVALID_ESCAPE_SEQUENCE);
                     break;

@@ -1,8 +1,11 @@
-# This file is part of the Oronyx programming language and is licensed under MIT License;
+# This file is part of the Klare programming language and is licensed under MIT License;
 # See LICENSE.txt for details
 
-add_executable(oronyx-test
+add_executable(klr-test
+        # vendor
         ${CMAKE_SOURCE_DIR}/vendor/catch2.cpp
+
+        # tokenize
         tokenize/unit/annotations.cpp
         tokenize/unit/classes.cpp
         tokenize/unit/comments.cpp
@@ -21,18 +24,21 @@ add_executable(oronyx-test
         tokenize/integration/control_flows.cpp
         tokenize/integration/classes.cpp
         tokenize/integration/complex.cpp
+
+        # parsing
+        parsing/unit/decl.cpp
 )
 
-target_include_directories(oronyx-test PRIVATE
+target_include_directories(klr-test PRIVATE
         ${CMAKE_SOURCE_DIR}/vendor
-        ${PROJECT_SOURCE_DIR}/compiler
+        ${PROJECT_SOURCE_DIR}
 )
 
-target_link_libraries(oronyx-test PRIVATE
-        orx
+target_link_libraries(klr-test PRIVATE
+        klr
 )
 
-set_target_properties(oronyx-test
+set_target_properties(klr-test
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
