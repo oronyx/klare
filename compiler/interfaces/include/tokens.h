@@ -69,6 +69,8 @@ namespace klr::compiler
         REF,   /* Ref<T> */
         PIN,   /* Pin<T> */
 
+        CAST, /* cast<T> */
+
         /* single operators */
         PLUS,
         MINUS,
@@ -271,6 +273,8 @@ namespace klr::compiler
         { "Share", TokenType::SHARE },
         { "Ref", TokenType::REF },
         { "Pin", TokenType::PIN },
+
+        { "cast", TokenType::CAST },
 
         { "+", TokenType::PLUS },
         { "-", TokenType::MINUS },

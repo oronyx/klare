@@ -47,12 +47,10 @@ namespace klr::compiler
             indent_str += "├── ";
         }
 
-        // Node header
         os << indent_str
                 << ColorCode::BOLD << ColorCode::BLUE << "Node " << node_idx << ColorCode::RESET
                 << " [" << ColorCode::GREEN << node_type_to_string(node.type) << ColorCode::RESET << "]";
 
-        // Token information
         os << " " << ColorCode::YELLOW
                 << "token{start=" << node.token.start
                 << " len=" << node.token.len
@@ -67,7 +65,6 @@ namespace klr::compiler
         }
 
         os << "\n";
-
         std::string data_indent;
         for (size_t i = 0; i < indent; i++)
             data_indent += "│   ";
@@ -131,7 +128,6 @@ namespace klr::compiler
             os << "]" << ColorCode::RESET << "\n";
         }
 
-        // Dump referenced nodes for expressions
         switch (node.type)
         {
             case ASTNodeType::BINARY_EXPR:

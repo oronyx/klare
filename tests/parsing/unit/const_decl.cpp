@@ -16,17 +16,12 @@ static AST parse_code(const std::string &code)
     return ast;
 }
 
-TEST_CASE("TEST")
+TEST_CASE("Const no type")
 {
-    const auto ast = parse_code(R"(
-function main() -> u16
-{
-    var x: u32 = 5;
-    const y = 8;
-    const z: Ref<u32> = &x;
-    return 0;
+    parse_code("const x = 5");
 }
-)");
 
-    ast.dump();
+TEST_CASE("Const with type")
+{
+    parse_code("const x: u32 = 5;");
 }

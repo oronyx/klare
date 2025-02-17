@@ -144,20 +144,32 @@ namespace klr::compiler
         }
 
         /* parameter list */
+        /* parameter list */
         expect(TokenType::LEFT_PAREN);
-        while (!match(TokenType::RIGHT_PAREN))
+        while (peek().type != TokenType::RIGHT_PAREN)
         {
             const Token param_name = expect(TokenType::IDENTIFIER);
-            expect(TokenType::COLON);
+            if (param_name.type != TokenType::IDENTIFIER)
+                break;
+
+            if (expect(TokenType::COLON).type != TokenType::COLON)
+                break;
+
             const uint32_t param_type = parse_type();
+            if (param_type == 0)
+                break;
 
             const uint32_t param_node = ast.add_node(ASTNodeType::DECL, param_name);
             ast.nodes[param_node].data.decl.type_node = param_type;
             ast.add_child(param_node, param_type);
             ast.add_child(func, param_node);
+            if (peek().type != TokenType::COMMA && peek().type != TokenType::RIGHT_PAREN)
+                break; /* TODO: throw error & break! */
+
             if (!match(TokenType::COMMA))
-                break;
+                break; /* end of parameters */
         }
+        expect(TokenType::RIGHT_PAREN);
 
         /* return type */
         expect(TokenType::ARROW);
@@ -248,11 +260,11 @@ namespace klr::compiler
             case TokenType::NUM_LITERAL:
             case TokenType::TRUE:
             case TokenType::FALSE:
+            case TokenType::NIL:
             {
                 advance();
                 return ast.add_node(ASTNodeType::LITERAL, tk);
             }
-
             case TokenType::LEFT_BRACE:
             {
                 advance();
@@ -266,7 +278,6 @@ namespace klr::compiler
                 expect(TokenType::RIGHT_BRACE);
                 return arr_init;
             }
-
             case TokenType::LEFT_PAREN:
             {
                 advance();
@@ -274,7 +285,6 @@ namespace klr::compiler
                 expect(TokenType::RIGHT_PAREN);
                 return expr;
             }
-
             case TokenType::IDENTIFIER:
             {
                 advance();
@@ -319,7 +329,23 @@ namespace klr::compiler
                 }
                 return id;
             }
+            case TokenType::CAST:
+            {
+                advance();
+                expect(TokenType::LESS);
+                const uint32_t cast_type = parse_type();
+                expect(TokenType::GREATER);
+                expect(TokenType::LEFT_PAREN);
+                const uint32_t expr = parse_expression();
+                expect(TokenType::RIGHT_PAREN);
 
+                const uint32_t cast = ast.add_node(ASTNodeType::CAST_EXPR, tk);
+                ast.nodes[cast].data.cast_expr = {
+                    .operand = expr,
+                    .type_node = cast_type
+                };
+                return cast;
+            }
             case TokenType::FUNCTION:
             {
                 return parse_function(true);
@@ -586,8 +612,13 @@ namespace klr::compiler
 
     uint32_t Parser::parse_unary() // NOLINT(*-no-recursion)
     {
-        if (peek().type == TokenType::BANG || peek().type == TokenType::MINUS ||
-            peek().type == TokenType::TILDE)
+        if (peek().type == TokenType::BANG ||
+            peek().type == TokenType::MINUS ||
+            peek().type == TokenType::TILDE ||
+            peek().type == TokenType::NEW ||
+            peek().type == TokenType::DELETE ||
+            peek().type == TokenType::AND || /* ref op */
+            peek().type == TokenType::STAR) /* ptr deref op */
         {
             const Token op = advance();
             const uint32_t right = parse_unary();
@@ -643,9 +674,9 @@ namespace klr::compiler
         expect(TokenType::RIGHT_PAREN);
 
         const Token brace = expect(TokenType::LEFT_BRACE);
-        uint32_t body = parse_block(brace);
+        const uint32_t body = parse_block(brace);
 
-        uint32_t while_node = ast.add_node(ASTNodeType::WHILE, while_token);
+        const uint32_t while_node = ast.add_node(ASTNodeType::WHILE, while_token);
         ast.add_child(while_node, condition);
         ast.add_child(while_node, body);
 
@@ -654,7 +685,7 @@ namespace klr::compiler
 
     uint32_t Parser::parse_for() // NOLINT(*-no-recursion)
     {
-        Token for_token = advance();
+        const Token for_token = advance();
         expect(TokenType::LEFT_PAREN);
 
         uint32_t init = 0;

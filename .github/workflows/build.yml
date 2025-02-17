@@ -35,4 +35,4 @@ jobs:
 
       - name: Test
         working-directory: ${{github.workspace}}/build/bin
-        run: ./oronyx-test
+        run: ./klr-test

@@ -17,6 +17,7 @@ namespace klr::compiler
         TYPE,        /* type annotations */
         BINARY_EXPR, /* binary expressions */
         UNARY_EXPR,  /* unary expressions */
+        CAST_EXPR,   /* type casting expressions */
         LITERAL,     /* literals (check tokens to determine if it's a string or number) */
         IDENTIFIER,  /* variable references */
         ARRAY_INIT,  /* array declaration */
@@ -84,6 +85,12 @@ namespace klr::compiler
 
             struct
             {
+                uint32_t operand;
+                uint32_t type_node;
+            } cast_expr;
+
+            struct
+            {
                 uint32_t ret_type; /* index to return type node */
                 uint32_t body;     /* index to function body */
             } function;
@@ -95,42 +102,17 @@ namespace klr::compiler
     public:
         std::vector<ASTNode> nodes;
 
-        /**
-         * Adds a new node to the AST
-         * @param type The type of the node
-         * @param token The token associated with the node
-         * @return Index of the newly created node
-         */
         uint32_t add_node(ASTNodeType type, Token token);
 
-        /**
-         * Adds a child node to a parent node
-         * @param parent_idx Index of the parent node
-         * @param child_idx Index of the child node
-         */
         void add_child(uint32_t parent_idx, uint32_t child_idx);
 
-        /**
-         * Dumps the AST to the specified output stream
-         * @param os Output stream (defaults to std::cout)
-         * @param node_idx Starting node index (defaults to 0)
-         * @param indent Initial indentation level (defaults to 0)
-         */
         void dump(std::ostream &os = std::cout, uint32_t node_idx = 0, size_t indent = 0) const;
 
     private:
-        /**
-         * Recursive helper function for dumping nodes
-         * @param os Output stream
-         * @param node_idx Current node index
-         * @param indent Current indentation level
-         * @param visited Tracks visited nodes to prevent cycles
-         */
+        /* dump() helper */
         void dump_node(std::ostream &os, uint32_t node_idx, size_t indent, std::vector<bool> &visited) const;
 
-        /**
-         * Helper functions for dumping various components
-         */
+        /* helpers */
         static void dump_token_flags(std::ostream &os, TokenFlags flags);
 
         static void dump_node_flags(std::ostream &os, ASTNodeFlags flags);

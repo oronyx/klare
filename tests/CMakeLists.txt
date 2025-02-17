@@ -26,7 +26,16 @@ add_executable(klr-test
         tokenize/integration/complex.cpp
 
         # parsing
-        parsing/unit/decl.cpp
+        parsing/unit/arr_decl.cpp
+        parsing/unit/arr_index.cpp
+        parsing/unit/bin_expr.cpp
+        parsing/unit/call_expr.cpp
+        parsing/unit/const_decl.cpp
+        parsing/unit/op_expr.cpp
+        parsing/unit/paren_expr.cpp
+        parsing/unit/ptr_decl.cpp
+        parsing/unit/una_expr.cpp
+        parsing/unit/var_decl.cpp
 )
 
 target_include_directories(klr-test PRIVATE
