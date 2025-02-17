@@ -3,11 +3,16 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("Identifier")
 {
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
     SECTION("Valid")
     {
         std::vector<std::string> identifiers = {
@@ -21,7 +26,7 @@ TEST_CASE("Identifier")
 
         for (const auto &id: identifiers)
         {
-            Lexer lexer(id);
+            Lexer lexer(relative_filename, id);
             const auto tokens = lexer.tokenize();
             REQUIRE(tokens->size() == 2);
             // std::cout << token_to_str(tokens->types[0]) << "\n";
@@ -40,7 +45,7 @@ TEST_CASE("Identifier")
 
         for (const auto &id: invalid_identifiers)
         {
-            Lexer lexer(id);
+            Lexer lexer(relative_filename, id);
             const auto tokens = lexer.tokenize();
             // std::cout << token_to_str(tokens->types[0]) << "\n";
             CHECK(tokens->types[0] == TokenType::UNKNOWN);

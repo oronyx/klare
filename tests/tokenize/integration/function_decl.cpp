@@ -3,12 +3,17 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("No params")
 {
-    Lexer lexer("function main() -> void {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "function main() -> void {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
         TokenType::FUNCTION,
@@ -25,7 +30,11 @@ TEST_CASE("No params")
 
 TEST_CASE("Single param")
 {
-    Lexer lexer("function add(x: i32) -> i32 {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "function add(x: i32) -> i32 {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
         TokenType::FUNCTION,
@@ -45,7 +54,11 @@ TEST_CASE("Single param")
 
 TEST_CASE("Multiple params")
 {
-    Lexer lexer("function add(x: i32, y: i32) -> i32 {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "function add(x: i32, y: i32) -> i32 {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
         TokenType::FUNCTION,
@@ -69,7 +82,11 @@ TEST_CASE("Multiple params")
 
 TEST_CASE("Single generic")
 {
-   Lexer lexer("function x<T>(a: T) -> T {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+   Lexer lexer(relative_filename, "function x<T>(a: T) -> T {}");
    const auto tks = lexer.tokenize();
    CHECK(tks->types == std::vector<TokenType>{
        TokenType::FUNCTION,
@@ -92,7 +109,11 @@ TEST_CASE("Single generic")
 
 TEST_CASE("Multiple generics")
 {
-   Lexer lexer("function x<T, U>(a: T, b: U) -> U {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+   Lexer lexer(relative_filename, "function x<T, U>(a: T, b: U) -> U {}");
    const auto tks = lexer.tokenize();
    CHECK(tks->types == std::vector<TokenType>{
        TokenType::FUNCTION,
@@ -121,7 +142,11 @@ TEST_CASE("Multiple generics")
 
 TEST_CASE("Variadic")
 {
-   Lexer lexer("function v<T...>(...: T...) -> void {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+   Lexer lexer(relative_filename, "function v<T...>(...: T...) -> void {}");
    const auto tks = lexer.tokenize();
    CHECK(tks->types == std::vector<TokenType>{
        TokenType::FUNCTION,
@@ -146,7 +171,11 @@ TEST_CASE("Variadic")
 
 TEST_CASE("Generic with variadic")
 {
-    Lexer lexer("function x<T, U...>(a: T, ...args: U...) -> T {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "function x<T, U...>(a: T, ...args: U...) -> T {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
         TokenType::FUNCTION,

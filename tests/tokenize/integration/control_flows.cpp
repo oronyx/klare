@@ -3,12 +3,17 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("For numerical loop")
 {
-    Lexer lexer("for (var i = 0; i < 10; i += 1) {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "for (var i = 0; i < 10; i += 1) {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::FOR,
@@ -34,7 +39,11 @@ TEST_CASE("For numerical loop")
 
 TEST_CASE("For range loop")
 {
-    Lexer lexer("for item in items {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "for item in items {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::FOR,
@@ -49,7 +58,11 @@ TEST_CASE("For range loop")
 
 TEST_CASE("For range tuple loop")
 {
-    Lexer lexer("for [i1, i2] in items {}");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "for [i1, i2] in items {}");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::FOR,
@@ -68,7 +81,11 @@ TEST_CASE("For range tuple loop")
 
 TEST_CASE("While loop")
 {
-    Lexer lexer("while (x > 0) { x -= 1; }");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "while (x > 0) { x -= 1; }");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::WHILE,
@@ -89,7 +106,11 @@ TEST_CASE("While loop")
 
 TEST_CASE("Switch cases")
 {
-    Lexer lexer(R"(
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, R"(
             switch (x)
             {
                 case 1:
@@ -131,7 +152,11 @@ TEST_CASE("Switch cases")
 
 TEST_CASE("If statement")
 {
-    Lexer lexer(R"(
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, R"(
             var x: i32 = 1;
             var y: i32 = 2;
             if (x > y)

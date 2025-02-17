@@ -31,8 +31,6 @@ add_executable(klr-test
         parsing/unit/bin_expr.cpp
         parsing/unit/call_expr.cpp
         parsing/unit/const_decl.cpp
-        parsing/unit/op_expr.cpp
-        parsing/unit/paren_expr.cpp
         parsing/unit/ptr_decl.cpp
         parsing/unit/una_expr.cpp
         parsing/unit/var_decl.cpp

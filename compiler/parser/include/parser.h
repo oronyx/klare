@@ -10,13 +10,23 @@ namespace klr::compiler
     class Parser
     {
     public:
-        explicit Parser(TokenList &tokens);
+        explicit Parser(std::string_view module_name, std::string_view source, TokenList &tokens, const std::unique_ptr<std::vector<uint32_t>> &starts);
 
         /* entry point & global scope parsing; returns the AST root */
         AST parse();
 
     private:
+        enum class ErrorLevel
+        {
+            ERROR,
+            WARNING,
+            NOTE,
+        };
+
         AST ast;
+        std::vector<uint32_t> line_starts;
+        std::string_view mod_name;
+        std::string_view src;
         TokenList &tokens;
         size_t current = 0;
 
@@ -29,7 +39,13 @@ namespace klr::compiler
 
         bool match(TokenType type);
 
-        Token expect(TokenType type);
+        Token expect(TokenType type, bool err = false);
+
+        Token expect(TokenType type, const char *str);
+
+        [[nodiscard]] std::pair<uint32_t, uint32_t> get_position(uint32_t offset) const;
+
+        [[noreturn]] void error(Token token, std::string_view message, std::string_view help = "") const;
 
         /* subroutines */
         uint32_t parse_decl();

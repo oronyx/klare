@@ -3,7 +3,7 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
-
+#include <filesystem>
 using namespace klr::compiler;
 
 TEST_CASE("Control flow")
@@ -20,9 +20,12 @@ TEST_CASE("Control flow")
         { "default", TokenType::DEFAULT }
     };
 
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
     for (const auto &[keyword, type]: keywords)
     {
-        Lexer lexer(keyword);
+        Lexer lexer(relative_filename, keyword);
         const auto tokens = lexer.tokenize();
         REQUIRE(tokens->size() == 2);
         CHECK(tokens->types[0] == type);

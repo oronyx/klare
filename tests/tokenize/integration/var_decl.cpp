@@ -3,12 +3,17 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("Variable")
 {
-    Lexer lexer("var x: i32 = 0;");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var x: i32 = 0;");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,
@@ -24,7 +29,10 @@ TEST_CASE("Variable")
 
 TEST_CASE("Const")
 {
-    Lexer lexer("const x: i32 = 0;");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+    Lexer lexer(relative_filename, "const x: i32 = 0;");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::CONST,
@@ -40,7 +48,11 @@ TEST_CASE("Const")
 
 TEST_CASE("Array")
 {
-    Lexer lexer("const arr: i32[] = { 1, 2, 3, 4, 5 };");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "const arr: i32[] = { 1, 2, 3, 4, 5 };");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::CONST,
@@ -68,7 +80,11 @@ TEST_CASE("Array")
 
 TEST_CASE("Binary expression")
 {
-    Lexer lexer("var x: i32 = 1 + 2 * 3 / 4 - 5;");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var x: i32 = 1 + 2 * 3 / 4 - 5;");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,
@@ -92,7 +108,11 @@ TEST_CASE("Binary expression")
 
 TEST_CASE("Statement")
 {
-    Lexer lexer(R"(
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, R"(
             var x: i32 = 0;
             var y: i32 = 2;
             var z = x > y ? x : y; // Short hand
@@ -130,7 +150,11 @@ TEST_CASE("Statement")
 
 TEST_CASE("Function call")
 {
-    Lexer lexer("var res = foo();");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var res = foo();");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,
@@ -146,7 +170,11 @@ TEST_CASE("Function call")
 
 TEST_CASE("Method invoke")
 {
-    Lexer lexer("var res = foo.bar();");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var res = foo.bar();");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,
@@ -164,7 +192,11 @@ TEST_CASE("Method invoke")
 
 TEST_CASE("Lambda")
 {
-    Lexer lexer("var nop = function(x: i32) -> void { return; };");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var nop = function(x: i32) -> void { return; };");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,
@@ -189,7 +221,11 @@ TEST_CASE("Lambda")
 
 TEST_CASE("Invalid declaration")
 {
-    Lexer lexer("var ;");
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, "var ;");
     const auto tks = lexer.tokenize();
     CHECK(tks->types == std::vector<TokenType>{
           TokenType::VAR,

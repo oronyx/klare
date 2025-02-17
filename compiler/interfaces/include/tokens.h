@@ -158,7 +158,11 @@ namespace klr::compiler
 
         /* identifier errors */
         INVALID_IDENTIFIER_START = 1 << 6,
-        INVALID_IDENTIFIER_CHAR = 1 << 7
+        INVALID_IDENTIFIER_CHAR = 1 << 7,
+
+        /* flags */
+        COMPOUND_START = 0x20,
+        COMPOUND_END = 0x40
     };
 
     struct alignas(8) Token
@@ -250,7 +254,7 @@ namespace klr::compiler
         { "as", TokenType::AS },
         { "operator", TokenType::OPERATOR },
         { "new", TokenType::NEW },
-        { "delete", TokenType::NEW },
+        { "delete", TokenType::DELETE },
         { "in", TokenType::IN },
         { "self", TokenType::SELF },
         { "namespace", TokenType::NAMESPACE },

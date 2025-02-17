@@ -3,12 +3,17 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("Class definition")
 {
-    Lexer lexer(R"(
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, R"(
        class Point<T>
        {
            var x: T;
@@ -77,7 +82,11 @@ TEST_CASE("Class definition")
 
 TEST_CASE("Class inheritance")
 {
-    Lexer lexer(R"(
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    Lexer lexer(relative_filename, R"(
        class Rectangle : Shape
        {
            var width: f32;

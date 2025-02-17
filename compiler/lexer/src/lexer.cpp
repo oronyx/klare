@@ -98,7 +98,7 @@ namespace klr::compiler
         return condition ? static_cast<uint8_t>(flag) : 0;
     }
 
-    Lexer::Lexer(const std::string_view src) : src(src.data(), src.size())
+    Lexer::Lexer(const std::string_view mod_name, const std::string_view src) : module_name(mod_name), src(src.data(), src.size())
                                                , current_pos(0)
                                                , src_length(src.length())
     {
@@ -342,8 +342,12 @@ namespace klr::compiler
             {
                 if (next == '>' && third == '=')
                     return { current_pos, 3, TokenType::RIGHT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
+
                 if (next == '>')
-                    return { current_pos, 2, TokenType::RIGHT_SHIFT, static_cast<TokenFlags>(flags) };
+                {
+                    return { current_pos, 1, TokenType::GREATER,
+                        static_cast<TokenFlags>(flags | static_cast<uint8_t>(TokenFlags::COMPOUND_START)) };
+                }
                 if (next == '=')
                     return { current_pos, 2, TokenType::GE, static_cast<TokenFlags>(flags) };
                 break;
@@ -353,7 +357,10 @@ namespace klr::compiler
                 if (next == '<' && third == '=')
                     return { current_pos, 3, TokenType::LEFT_SHIFT_EQ, static_cast<TokenFlags>(flags) };
                 if (next == '<')
-                    return { current_pos, 2, TokenType::LEFT_SHIFT, static_cast<TokenFlags>(flags) };
+                {
+                    return { current_pos, 1, TokenType::LESS,
+                        static_cast<TokenFlags>(flags | static_cast<uint8_t>(TokenFlags::COMPOUND_START)) };
+                }
                 if (next == '=')
                     return { current_pos, 2, TokenType::LE, static_cast<TokenFlags>(flags) };
                 break;
@@ -504,17 +511,30 @@ namespace klr::compiler
         if (current_pos >= src_length)
             return { current_pos, 0, TokenType::END_OF_FILE, static_cast<TokenFlags>(0) };
 
-        switch (const char c = src[current_pos]; char_type[static_cast<uint8_t>(c)])
+        Token tok = [&]
         {
-            case 4:
-                return lex_identifier();
-            case 5:
-                return lex_number();
-            case 6:
-                return lex_string();
-            default:
-                return lex_operator();
+            switch (const char c = src[current_pos]; char_type[static_cast<uint8_t>(c)])
+            {
+                case 4:
+                    return lex_identifier();
+                case 5:
+                    return lex_number();
+                case 6:
+                    return lex_string();
+                default:
+                    return lex_operator();
+            }
+        }();
+
+        if (static_cast<uint8_t>(tok.flags) & static_cast<uint8_t>(TokenFlags::COMPOUND_START))
+        {
+            tokens.push_back(tok);
+            current_pos += tok.len;
+            return { current_pos, 1, tok.type,
+                static_cast<TokenFlags>(static_cast<uint8_t>(TokenFlags::COMPOUND_END)) };
         }
+
+        return tok;
     }
 
     // returns a unique_ptr of TokenList because

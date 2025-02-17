@@ -12,7 +12,9 @@ namespace klr::compiler
     class alignas(64) Lexer
     {
     public:
-        explicit Lexer(std::string_view src);
+        std::string_view module_name;
+
+        explicit Lexer(std::string_view mod_name, std::string_view src);
 
         std::unique_ptr<TokenList> tokenize();
 

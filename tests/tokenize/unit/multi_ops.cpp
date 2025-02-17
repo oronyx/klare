@@ -3,12 +3,24 @@
 
 #include <catch2.hpp>
 #include <compiler/lexer/include/lexer.h>
+#include <filesystem>
 
 using namespace klr::compiler;
 
 TEST_CASE("Multi-character operators")
 {
-    std::vector<std::pair<std::string, TokenType> > operators = {
+    std::string test_name = Catch::getResultCapture().getCurrentTestName();
+    std::filesystem::path test_file_path = std::filesystem::current_path() / (test_name + ".klr");
+    std::string relative_filename = test_file_path.string();
+
+    std::vector<std::pair<std::string, TokenType>> shift_operators = {
+        { "<<", TokenType::LESS },
+        { ">>", TokenType::GREATER },
+        { "<<=", TokenType::LEFT_SHIFT_EQ },
+        { ">>=", TokenType::RIGHT_SHIFT_EQ }
+    };
+
+    std::vector<std::pair<std::string, TokenType>> regular_operators = {
         { "->", TokenType::ARROW },
         { "::", TokenType::SCOPE },
         { "..", TokenType::RANGE },
@@ -26,18 +38,40 @@ TEST_CASE("Multi-character operators")
         { "%=", TokenType::PERCENT_EQ },
         { "&=", TokenType::AND_EQ },
         { "|=", TokenType::OR_EQ },
-        { "^=", TokenType::XOR_EQ },
-        { "<<", TokenType::LEFT_SHIFT },
-        { ">>", TokenType::RIGHT_SHIFT },
-        { "<<=", TokenType::LEFT_SHIFT_EQ },
-        { ">>=", TokenType::RIGHT_SHIFT_EQ }
+        { "^=", TokenType::XOR_EQ }
     };
 
-    for (const auto &[op, type]: operators)
+    SECTION("Regular multi-character operators")
     {
-        Lexer lexer(op);
-        const auto tokens = lexer.tokenize();
-        REQUIRE(tokens->size() == 2);
-        CHECK(tokens->types[0] == type);
+        for (const auto &[op, type]: regular_operators)
+        {
+            Lexer lexer(relative_filename, op);
+            const auto tokens = lexer.tokenize();
+            REQUIRE(tokens->size() == 2);
+            CHECK(tokens->types[0] == type);
+        }
+    }
+
+    SECTION("Shift operators")
+    {
+        for (const auto &[op, type]: shift_operators)
+        {
+            Lexer lexer(relative_filename, op);
+            const auto tokens = lexer.tokenize();
+
+            if (op == "<<" || op == ">>")
+            {
+                REQUIRE(tokens->size() == 3);
+                CHECK(tokens->types[0] == type);
+                CHECK(tokens->types[1] == type);
+                CHECK((static_cast<uint8_t>(tokens->flags[0]) & static_cast<uint8_t>(TokenFlags::COMPOUND_START)) != 0);
+                CHECK((static_cast<uint8_t>(tokens->flags[1]) & static_cast<uint8_t>(TokenFlags::COMPOUND_END)) != 0);
+            }
+            else
+            {
+                REQUIRE(tokens->size() == 2);
+                CHECK(tokens->types[0] == type);
+            }
+        }
     }
 }

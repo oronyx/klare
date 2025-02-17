@@ -108,6 +108,14 @@ namespace klr::compiler
                         << "└─ body: " << node.data.function.body << ColorCode::RESET << "\n";
                 break;
             }
+            case ASTNodeType::CAST_EXPR:
+            {
+                os << data_indent << ColorCode::CYAN
+                        << "└─ operand: " << node.data.cast_expr.operand << ColorCode::RESET << "\n";
+                os << data_indent << ColorCode::CYAN
+                        << "└─ type_node: " << node.data.cast_expr.type_node << ColorCode::RESET << "\n";
+                break;
+            }
             default:
                 break;
         }
@@ -131,22 +139,36 @@ namespace klr::compiler
         switch (node.type)
         {
             case ASTNodeType::BINARY_EXPR:
+            {
                 dump_node(os, node.data.binary_expr.left, indent + 1, visited);
                 dump_node(os, node.data.binary_expr.right, indent + 1, visited);
                 break;
+            }
             case ASTNodeType::UNARY_EXPR:
+            {
                 dump_node(os, node.data.unary_expr.operand, indent + 1, visited);
                 break;
+            }
             case ASTNodeType::DECL:
+            {
                 if (node.data.decl.type_node)
                     dump_node(os, node.data.decl.type_node, indent + 1, visited);
                 if (node.data.decl.init_node)
                     dump_node(os, node.data.decl.init_node, indent + 1, visited);
                 break;
+            }
             case ASTNodeType::FUNCTION:
+            {
                 dump_node(os, node.data.function.ret_type, indent + 1, visited);
                 dump_node(os, node.data.function.body, indent + 1, visited);
                 break;
+            }
+            case ASTNodeType::CAST_EXPR:
+            {
+                dump_node(os, node.data.cast_expr.type_node, indent + 1, visited);
+                dump_node(os, node.data.cast_expr.operand, indent + 1, visited);
+                break;
+            }
             default:
                 break;
         }
@@ -168,7 +190,7 @@ namespace klr::compiler
             return;
         }
 
-        bool first = true;
+        auto first = true;
         if ((flags & ASTNodeFlags::IS_CONST) != ASTNodeFlags::NONE)
         {
             os << "IS_CONST";
@@ -226,6 +248,8 @@ namespace klr::compiler
                 return "BREAK";
             case ASTNodeType::CONTINUE:
                 return "CONTINUE";
+            case ASTNodeType::CAST_EXPR:
+                return "CAST_EXPR";
             default:
                 return "UNKNOWN";
         }
